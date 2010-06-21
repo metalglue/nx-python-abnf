@@ -70,13 +70,9 @@ def lexer():
         t.value = v
         return t
 
-    t_MINUS = r"-"
-    
     t_EQ = r"="
 
     t_EQSLASH = r"=/"
-
-    t_SEMI = r";"
 
     t_SLASH = r"/"
 
