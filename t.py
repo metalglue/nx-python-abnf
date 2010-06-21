@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 import abnf.lexer
+import abnf.parser
 
-def test(lexer, text):
-    lexer.input(text)
-    while True:
-        token = lexer.token()
-        if not token:
-            break
-        print token
+def test_(parser, lexer, text):
+    pass
+def test(parser, lexer, text):
+    p = parser.parse(text, lexer=lexer)
+    print p
 
 lexer = abnf.lexer.lexer()
-test(lexer, """
+parser = abnf.parser.parser()
+test(parser, lexer, """
+        rule = rulename
+""")
+test_(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
