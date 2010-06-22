@@ -20,14 +20,11 @@ def test(parser, lexer, text):
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test_lex(parser, lexer, """
-        rule 
-        = 
-        rulename
-        rule 
-        = rulename
+test(parser, lexer, """
+        rule = rulename
+        rule = rulename
 """)
-test_lex(parser, lexer, """
+test(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts

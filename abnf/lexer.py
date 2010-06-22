@@ -9,10 +9,8 @@ tokens = (
     "INTEGER",
     "STRING",
     "VALUE",
-    "MINUS",
     "EQ",
     "EQSLASH",
-    "SEMI",
     "SLASH",
     "STAR",
     "LPAREN",
@@ -91,6 +89,7 @@ def lexer_inner():
     t_ignore_COMMENT = ";[^\n]*"
 
     return ply.lex.lex()
+
 
 class lexer(object):
     
