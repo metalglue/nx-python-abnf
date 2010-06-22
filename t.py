@@ -5,16 +5,25 @@ import abnf.parser
 
 def test_(parser, lexer, text):
     pass
+
+def test_lex(parser, lexer, text):
+    lexer.input(text)
+    while True:
+        token = lexer.token()
+        if not token:
+            break
+        print token
+
 def test(parser, lexer, text):
     p = parser.parse(text, lexer=lexer)
     print p
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test(parser, lexer, """
+test_(parser, lexer, """
         rule = rulename
 """)
-test_(parser, lexer, """
+test_lex(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
