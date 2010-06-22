@@ -22,7 +22,7 @@ tokens = (
 )
 
 
-def lexer():
+def lexer_inner():
 
     t_IDENT = r"[A-Za-z][A-Za-z0-9-]*"
 
@@ -91,4 +91,59 @@ def lexer():
     t_ignore_COMMENT = ";[^\n]*"
 
     return ply.lex.lex()
+
+class lexer(object):
+    
+    def __init__(self):
+        self.lexer_inner = lexer_inner()
+
+    def token(self):
+        if len( self.list ) > 0:
+            return self.list.pop(0)
+        if self.state == 2:
+            return None
+        # Search EQ then search backword NEWLINE IDENT from there
+        # In initial state, read until second EQ
+        # In intermediate state, self.buf holds "IDENT ... EQ". So read until first EQ
+        # After read: i points to the first EQ and j points to the second EQ
+        i = len( self.buf )
+        if self.state == 0:
+            self.state = 1
+            while True:
+                t = self.lexer_inner.token()
+                if not t:
+                    raise Exception
+                i += 1
+                self.buf += [ t ]
+                if t.type == "EQ" or t.type == "EQSLASH":
+                    break
+        j = i
+        while True:
+            t = self.lexer_inner.token()
+            if not t:
+                self.state = 2
+                break
+            j += 1
+            self.buf += [ t ]
+            if t.type == "EQ" or t.type == "EQSLASH":
+                break
+        if self.state == 1:
+            k = j - 2
+            while True:
+                if k <= i + 1:
+                    raise Exception
+                if self.buf[k].type == "IDENT" and self.buf[ k - 1 ].type == "NEWLINE":
+                    break
+                k -= 1
+            self.list = [ x for x in self.buf[ 0 : k - 1 ] if x.type != "NEWLINE" ] + [ self.buf[ k - 1 ] ]
+            self.buf[0:k] = []
+        else:
+            self.list = [ x for x in self.buf[0:-1] if x.type != "NEWLINE" ] + [ self.buf[-1] ]
+        return self.list.pop(0)
+
+    def input(self, text):
+        self.list = []
+        self.state = 0
+        self.buf = []
+        return self.lexer_inner.input(text)
 

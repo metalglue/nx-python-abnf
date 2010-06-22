@@ -20,8 +20,12 @@ def test(parser, lexer, text):
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test_(parser, lexer, """
-        rule = rulename
+test_lex(parser, lexer, """
+        rule 
+        = 
+        rulename
+        rule 
+        = rulename
 """)
 test_lex(parser, lexer, """
 
