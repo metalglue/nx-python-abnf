@@ -72,5 +72,5 @@ def p_element____(p):
 
 
 def parser():
-    return ply.yacc.yacc()
+    return ply.yacc.yacc(write_tables=0, debug=0)
 
