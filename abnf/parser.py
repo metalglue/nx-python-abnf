@@ -43,6 +43,48 @@ class Concatenation(SyntaxNode):
     def __add__(self, right):
         return Concatenation( self._list + [ right ] )
 
+class Repetition(SyntaxNode):
+    def __init__(self, repeat, element):
+        self.repeat = repeat
+        self.element = element
+    def __str__(self):
+        return "Repetition(%s, %s)" % ( str( self.repeat ), str( self.element ) )
+
+class Repeat(SyntaxNode):
+    def __init__(self, from_, to):
+        self.from_ = from_
+        self.to = to
+    def __str__(self):
+        if self.from_ is not None and self.from_ == self.to:
+            return self.from_
+        return "".join( [ ( self.from_ is not None and self.from_ or "" ),
+                          "*",
+                          (self.to is not None and self.to or "" ) ] )
+
+class RulenameElement(SyntaxNode):
+    def __init__(self, rulename):
+        self.rulename = rulename
+    def __str__(self):
+        return 'RulenameElement("%s")' % ( self.rulename )
+
+class GroupedElement(SyntaxNode):
+    def __init__(self, alternation):
+        self.alternation = alternation
+    def __str__(self):
+        return "GroupedElement(%s)" % ( self.alternation )
+
+class OptionalElement(SyntaxNode):
+    def __init__(self, alternation):
+        self.alternation = alternation
+    def __str__(self):
+        return "OptionalElement(%s)" % ( self.alternation )
+
+class LiteralElement(SyntaxNode):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return "LiteralElement(%s)" % ( self.value )
+
 
 def p_rulelist(p):
     "rulelist : rule"
@@ -86,39 +128,51 @@ def p_concatenation_(p):
 
 def p_repetition(p):
     "repetition : element"
+    p[0] = Repetition( Repeat( "1", "1" ), p[1] )
 
 def p_repetition_(p):
     "repetition : repeat element"
+    p[0] = Repetition( p[1], p[2] )
 
 def p_repeat(p):
     "repeat : INTEGER"
+    p[0] = Repeat( p[1], p[1] )
 
 def p_repeat_(p):
     "repeat : STAR"
+    p[0] = Repeat( None, None )
 
 def p_repeat__(p):
     "repeat : INTEGER STAR"
+    p[0] = Repeat( p[1], None )
 
 def p_repeat___(p):
     "repeat : INTEGER STAR INTEGER"
+    p[0] = Repeat( p[1], p[3] )
 
 def p_repeat____(p):
     "repeat : STAR INTEGER"
+    p[0] = Repeat( p[2], None )
 
 def p_element(p):
     "element : rulename"
+    p[0] = RulenameElement( p[1] )
 
 def p_element_(p):
     "element : LPAREN alternation RPAREN"
+    p[0] = GroupedElement( p[2] )
 
 def p_element__(p):
     "element : LBRACKET alternation RBRACKET"
+    p[0] = OptionalElement( p[2] )
 
 def p_element___(p):
     "element : STRING"
+    p[0] = LiteralElement( p[1] )
 
 def p_element____(p):
     "element : VALUE"
+    p[0] = LiteralElement( p[1] )
 
 
 def parser():
