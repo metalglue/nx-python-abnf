@@ -9,7 +9,7 @@ class SyntaxNode(object):
 
 class Rulelist(SyntaxNode):
     def __init__(self, rule_or_list):
-        self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
+        self._list = rule_or_list if isinstance( rule_or_list, list ) else [ rule_or_list ]
     def __str__(self):
         return "Rulelist"
     def __add__(self, right):
@@ -33,7 +33,7 @@ class DefinedAs(SyntaxNode):
 
 class Alternation(SyntaxNode):
     def __init__(self, rule_or_list):
-        self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
+        self._list = rule_or_list if isinstance( rule_or_list, list ) else [ rule_or_list ]
     def __str__(self):
         return "Alternation"
     def __add__(self, right):
@@ -44,7 +44,7 @@ class Alternation(SyntaxNode):
 class Concatenation(SyntaxNode):
     def __init__(self, lineno, rule_or_list):
         self.lineno = lineno
-        self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
+        self._list = rule_or_list if isinstance( rule_or_list, list ) else [ rule_or_list ]
     def __str__(self):
         return "Concatenation[%d]" % ( self.lineno )
     def __add__(self, right):
@@ -68,9 +68,9 @@ class Repeat(SyntaxNode):
     def __str__(self):
         if self.from_ is not None and self.from_ == self.to:
             return self.from_
-        return "".join( [ ( self.from_ is not None and self.from_ or "" ),
+        return "".join( [ ( self.from_ if self.from_ is not None else "" ),
                           "*",
-                          (self.to is not None and self.to or "" ) ] )
+                          ( self.to if self.to is not None else "" ) ] )
     def __iter__(self):
         return
         yield

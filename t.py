@@ -18,7 +18,7 @@ def test(parser, lexer, text):
     p = parser.parse(text, lexer=lexer)
     print p
 
-def test2(parser, lexer, text):
+def test2(p):
     def visit(p):
         def escape(s):
             return s.replace('"', '\\"')
@@ -27,7 +27,6 @@ def test2(parser, lexer, text):
             print 'node%d -> node%d;' % ( id(p), id(i) )
         for i in p:
             visit(i)
-    p = parser.parse(text, lexer=lexer, tracking=True)
     print "digraph sample {"
     print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
     print "node [ fontsize=8, shape=box, width=0, height=0 ];"
@@ -38,25 +37,31 @@ def test2(parser, lexer, text):
 def test3(parse, lexer, text):
     def normalize_defined_as(p):
         def merge(a, b):
-            for x in b.alternation:
-                a.alternation = a.alternation + x
-            return a
+            return abnf.parser.Rule( a.rulename,
+                                     abnf.parser.DefinedAs.EQ,
+                                     reduce( lambda x, y: x + y, b.alternation, a.alternation ) )
         name_to_rule = {}
         for x in p:
             if x.rulename not in name_to_rule:
+                if x.defined_as == abnf.parser.DefinedAs.EQSLASH:
+                    raise Exception( "Syntax Error at line %d." % ( x.alternation._list[0].lineno ) )
                 name_to_rule[ x.rulename ] = x
             else:
+                if x.defined_as == abnf.parser.DefinedAs.EQ:
+                    raise Exception( "Syntax Error at line %d." % ( x.alternation._list[0].lineno ) )
                 name_to_rule[ x.rulename ] = merge( name_to_rule[ x.rulename ], x )
-    p = parser.parse(text, lexer=lexer)
-    normalize_defined_as(p)
+        return reduce( lambda x, y: x + y, name_to_rule.itervalues(), abnf.parser.Rulelist([]) )
+    p = parser.parse(text, lexer=lexer, tracking=True)
+    p = normalize_defined_as(p)
+    test2(p)
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test_(parser, lexer, """
+test3(parser, lexer, """
         rule = rulename
-        rule = rulename
+        rule =/ rulename
 """)
-test2(parser, lexer, """
+test_(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
