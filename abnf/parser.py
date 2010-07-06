@@ -42,12 +42,13 @@ class Alternation(SyntaxNode):
         return iter( self._list )
 
 class Concatenation(SyntaxNode):
-    def __init__(self, rule_or_list):
+    def __init__(self, lineno, rule_or_list):
+        self.lineno = lineno
         self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
     def __str__(self):
-        return "Concatenation"
+        return "Concatenation[%d]" % ( self.lineno )
     def __add__(self, right):
-        return Concatenation( self._list + [ right ] )
+        return Concatenation( self.lineno, self._list + [ right ] )
     def __iter__(self):
         return iter( self._list )
 
@@ -143,7 +144,7 @@ def p_alternation_(p):
 
 def p_concatenation(p):
     "concatenation : repetition"
-    p[0] = Concatenation( p[1] )
+    p[0] = Concatenation( p.lineno(1), p[1] )
 
 def p_concatenation_(p):
     "concatenation : concatenation repetition"

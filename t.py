@@ -27,7 +27,7 @@ def test2(parser, lexer, text):
             print 'node%d -> node%d;' % ( id(p), id(i) )
         for i in p:
             visit(i)
-    p = parser.parse(text, lexer=lexer)
+    p = parser.parse(text, lexer=lexer, tracking=True)
     print "digraph sample {"
     print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
     print "node [ fontsize=8, shape=box, width=0, height=0 ];"
@@ -56,7 +56,7 @@ test_(parser, lexer, """
         rule = rulename
         rule = rulename
 """)
-test3(parser, lexer, """
+test2(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
