@@ -31,7 +31,8 @@ def test2(parser, lexer, text):
     print "digraph sample {"
     print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
     print "node [ fontsize=8, shape=box, width=0, height=0 ];"
-    visit(p)
+    for x in p:
+        visit(x)
     print "}"
 
 lexer = abnf.lexer.lexer()

@@ -56,9 +56,8 @@ class Repetition(SyntaxNode):
         self.repeat = repeat
         self.element = element
     def __str__(self):
-        return "Repetition"
+        return "Repetition %s" % ( self.repeat )
     def __iter__(self):
-        yield self.repeat
         yield self.element
 
 class Repeat(SyntaxNode):
