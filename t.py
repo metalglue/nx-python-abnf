@@ -35,13 +35,28 @@ def test2(parser, lexer, text):
         visit(x)
     print "}"
 
+def test3(parse, lexer, text):
+    def normalize_defined_as(p):
+        def merge(a, b):
+            for x in b.alternation:
+                a.alternation = a.alternation + x
+            return a
+        name_to_rule = {}
+        for x in p:
+            if x.rulename not in name_to_rule:
+                name_to_rule[ x.rulename ] = x
+            else:
+                name_to_rule[ x.rulename ] = merge( name_to_rule[ x.rulename ], x )
+    p = parser.parse(text, lexer=lexer)
+    normalize_defined_as(p)
+
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
 test_(parser, lexer, """
         rule = rulename
         rule = rulename
 """)
-test2(parser, lexer, """
+test3(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
