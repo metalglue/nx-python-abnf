@@ -11,9 +11,11 @@ class Rulelist(SyntaxNode):
     def __init__(self, rule_or_list):
         self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
     def __str__(self):
-        return "\n".join( [ "START" ] + [ str(x) for x in self._list ] + [ "END" ] )
+        return "Rulelist"
     def __add__(self, right):
         return Rulelist( self._list + [ right ] )
+    def __iter__(self):
+        return iter( self._list )
 
 class Rule(SyntaxNode):
     def __init__(self, rulename, defined_as, alternation):
@@ -21,7 +23,9 @@ class Rule(SyntaxNode):
         self.defined_as = defined_as
         self.alternation = alternation
     def __str__(self):
-        return "Rule(%s, %s, %s)" % ( str( self.rulename ), str( self.defined_as ), str( self.alternation ) )
+        return "Rule %s %s" % ( self.rulename, self.defined_as )
+    def __iter__(self):
+        yield self.alternation
 
 class DefinedAs(SyntaxNode):
     EQ = "="
@@ -31,24 +35,31 @@ class Alternation(SyntaxNode):
     def __init__(self, rule_or_list):
         self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
     def __str__(self):
-        return " / ".join( [ str(x) for x in self._list ] )
+        return "Alternation"
     def __add__(self, right):
         return Alternation( self._list + [ right ] )
+    def __iter__(self):
+        return iter( self._list )
 
 class Concatenation(SyntaxNode):
     def __init__(self, rule_or_list):
         self._list = isinstance( rule_or_list, list ) and rule_or_list or [ rule_or_list ]
     def __str__(self):
-        return " ".join( [ str(x) for x in self._list ] )
+        return "Concatenation"
     def __add__(self, right):
         return Concatenation( self._list + [ right ] )
+    def __iter__(self):
+        return iter( self._list )
 
 class Repetition(SyntaxNode):
     def __init__(self, repeat, element):
         self.repeat = repeat
         self.element = element
     def __str__(self):
-        return "Repetition(%s, %s)" % ( str( self.repeat ), str( self.element ) )
+        return "Repetition"
+    def __iter__(self):
+        yield self.repeat
+        yield self.element
 
 class Repeat(SyntaxNode):
     def __init__(self, from_, to):
@@ -60,30 +71,43 @@ class Repeat(SyntaxNode):
         return "".join( [ ( self.from_ is not None and self.from_ or "" ),
                           "*",
                           (self.to is not None and self.to or "" ) ] )
+    def __iter__(self):
+        return
+        yield
 
 class RulenameElement(SyntaxNode):
     def __init__(self, rulename):
         self.rulename = rulename
     def __str__(self):
-        return 'RulenameElement("%s")' % ( self.rulename )
+        return "RulenameElement %s" % ( self.rulename )
+    def __iter__(self):
+        return
+        yield
 
 class GroupedElement(SyntaxNode):
     def __init__(self, alternation):
         self.alternation = alternation
     def __str__(self):
-        return "GroupedElement(%s)" % ( self.alternation )
+        return "GroupedElement" % ( self.alternation )
+    def __iter__(self):
+        yield self.alternation
 
 class OptionalElement(SyntaxNode):
     def __init__(self, alternation):
         self.alternation = alternation
     def __str__(self):
-        return "OptionalElement(%s)" % ( self.alternation )
+        return "OptionalElement"
+    def __iter__(self):
+        yield self.alternation
 
 class LiteralElement(SyntaxNode):
     def __init__(self, value):
         self.value = value
     def __str__(self):
-        return "LiteralElement(%s)" % ( self.value )
+        return "LiteralElement %s" % ( self.value )
+    def __iter__(self):
+        return
+        yield
 
 
 def p_rulelist(p):

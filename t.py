@@ -18,13 +18,29 @@ def test(parser, lexer, text):
     p = parser.parse(text, lexer=lexer)
     print p
 
+def test2(parser, lexer, text):
+    def visit(p):
+        def escape(s):
+            return s.replace('"', '\\"')
+        print 'node%d [ label = "%s" ];' % ( id(p), escape(str(p)) )
+        for i in p:
+            print 'node%d -> node%d;' % ( id(p), id(i) )
+        for i in p:
+            visit(i)
+    p = parser.parse(text, lexer=lexer)
+    print "digraph sample {"
+    print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
+    print "node [ fontsize=8, shape=box, width=0, height=0 ];"
+    visit(p)
+    print "}"
+
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test(parser, lexer, """
+test_(parser, lexer, """
         rule = rulename
         rule = rulename
 """)
-test(parser, lexer, """
+test2(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
