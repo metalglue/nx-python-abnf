@@ -30,6 +30,7 @@ class Rule(object):
     def __init__(self, rule):
         self.rule = rule
         self._list = []
+        self.refs = []
     def __str__(self):
         return self.rule.rulename
     def __iter__(self):
@@ -93,6 +94,23 @@ def show_dot(rulelist):
     # print "}"
     print "}"
 
+def show_dot2(rulelist):
+    def escape(s):
+        return s.replace('"', '\\"')
+    print "digraph sample {"
+    # print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
+    print "node [ fontsize=8, shape=ellipse, width=0, height=0 ];"
+    print "edge [ arrowsize=0.5 ];"
+    for rule in rulelist:
+        print 'node%d [ label = "%s" ];' % ( id(rule), escape( str(rule) ) )
+        for ref in rule.refs:
+            if ref.rule is not None:
+                print 'node%d -> node%d;' % ( id(rule), id( ref.rule ) )
+            else:
+                print 'node%d [ label = "%s", shape=box ];' % ( id(ref), escape( str(ref) ) )
+                print 'node%d -> node%d;' % ( id(rule), id(ref) )
+    print "}"
+
 def f(ast):
     def create_reference(rulename):
         if rulename in unresolved_refs_map:
@@ -122,7 +140,19 @@ def f(ast):
     rulename_rule_map = dict( ( ( rule.rulename, Rule(rule) ) for rule in ast ) )
     rulelist = Rulelist(ast)
     rulelist._list = [ visit_rule(rule) for rule in rulename_rule_map.itervalues() ]
-    show_dot(rulelist)
+    rulelist = g(rulelist)
+    show_dot2(rulelist)
+    return rulelist
+
+def g(rulelist):
+    for rule in rulelist:
+        refs = reduce( lambda x, y: x + y,
+                       ( definition.refs for definition in ( definition for definition in rule ) ),
+                       [] )
+        for ref in refs:
+            if not filter( lambda i: i.rulename == ref.rulename, rule.refs ):
+                rule.refs = rule.refs + [ ref ]
+    return rulelist
 
 def analyze(ast):
     ast = normalize_defined_as(ast)
