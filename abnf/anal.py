@@ -141,7 +141,7 @@ def f(ast):
     rulelist = Rulelist(ast)
     rulelist._list = [ visit_rule(rule) for rule in rulename_rule_map.itervalues() ]
     rulelist = g(rulelist)
-    show_dot2(rulelist)
+    show_dot(rulelist)
     return rulelist
 
 def g(rulelist):
