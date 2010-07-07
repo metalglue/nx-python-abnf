@@ -24,7 +24,7 @@ class Rulelist(object):
         self.rulelist = rulelist
         self._list = []
     def __iter__(self):
-        return iter(self._list)
+        return iter( self._list )
 
 class Rule(object):
     def __init__(self, rule):
@@ -34,7 +34,7 @@ class Rule(object):
     def __str__(self):
         return self.rule.rulename
     def __iter__(self):
-        return iter(self._list)
+        return iter( self._list )
 
 class Definition(object):
     def __init__(self, concatenation):
@@ -63,24 +63,24 @@ def show(rulelist):
     def visit(x, indent=0):
         print "%s%s" % ( "  " * indent, x )
         for i in x:
-            visit(i, indent + 1)
+            visit( i, indent + 1 )
     for rule in rulelist:
         visit(rule)
 
 def show_dot(rulelist):
     def visit(x):
         def escape(s):
-            return s.replace('"', '\\"')
-        print 'node%d [ label = "%s" ];' % ( id(x), escape(str(x)) )
+            return s.replace( '"', '\\"' )
+        print 'node%d [ label = "%s" ];' % ( id(x), escape( str(x) ) )
         if isinstance(x, Definition):
             print 'node%d [ shape=box ];' % ( id(x) )
         for i in x:
-            if isinstance( i, Reference ) and i.rule is not None:
-                print 'node%d -> node%d;' % ( id(x), id(i.rule) )
+            if isinstance(i, Reference) and i.rule is not None:
+                print 'node%d -> node%d;' % ( id(x), id( i.rule ) )
             else:
                 print 'node%d -> node%d;' % ( id(x), id(i) )
         for i in x:
-            if not isinstance( i, Reference ) or i.rule is None:
+            if not isinstance(i, Reference) or i.rule is None:
                 visit(i)
     print "digraph sample {"
     # print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
@@ -96,7 +96,7 @@ def show_dot(rulelist):
 
 def show_dot2(rulelist):
     def escape(s):
-        return s.replace('"', '\\"')
+        return s.replace( '"', '\\"' )
     print "digraph sample {"
     # print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
     print "node [ fontsize=8, shape=ellipse, width=0, height=0 ];"
