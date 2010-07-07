@@ -26,7 +26,7 @@ def test2(p, lexer, text):
 def test3(parse, lexer, text):
     ast = parser.parse(text, lexer=lexer, tracking=True)
     ast = abnf.anal.analyze(ast)
-    abnf.parser.show(ast)
+    #abnf.parser.show(ast)
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()

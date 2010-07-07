@@ -40,7 +40,7 @@ class Definition(object):
         self.concatenation = concatenation
         self.refs = []
     def __str__(self):
-        return "%s" % ( self.concatenation )
+        return "%d" % ( self.concatenation.lineno )
     def __iter__(self):
         return iter( self.refs )
 
@@ -66,7 +66,31 @@ def show(rulelist):
     for rule in rulelist:
         visit(rule)
 
-def f(ast, rulename_rule_map):
+def show_dot(rulelist):
+    def visit(x):
+        def escape(s):
+            return s.replace('"', '\\"')
+        print 'node%d [ label = "%s" ];' % ( id(x), escape(str(x)) )
+        for i in x:
+            if isinstance( i, Reference ) and i.rule is not None:
+                print 'node%d -> node%d;' % ( id(x), id(i.rule) )
+            else:
+                print 'node%d -> node%d;' % ( id(x), id(i) )
+        for i in x:
+            if not isinstance( i, Reference ) or i.rule is None:
+                visit(i)
+    print "digraph sample {"
+    # print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
+    print "node [ fontsize=8, shape=box, width=0, height=0 ];"
+    for x in rulelist:
+        visit(x)
+    # print "{ rank=same; ",
+    # for x in rulelist:
+    #     print "node%d " % ( id(x) ),
+    # print "}"
+    print "}"
+
+def f(ast):
     def visit_xxx(x, definition):
         if isinstance( x, abnf.parser.RulenameElement ):
             definition.refs = definition.refs + [ Reference( x.rulename, rulename_rule_map.get( x.rulename, None ) ) ]
@@ -78,17 +102,16 @@ def f(ast, rulename_rule_map):
             visit_xxx(repetition, definition)
         return definition
     def visit_rule(rule):
-        definitions = [ visit_concatenation(concatenation) for concatenation in rule.alternation ]
-        r = Rule(rule)
-        r._list = definitions
-        return r
+        definitions = [ visit_concatenation(concatenation) for concatenation in rule.rule.alternation ]
+        rule._list = definitions
+        return rule
+    rulename_rule_map = dict( ( ( rule.rulename, Rule(rule) ) for rule in ast ) )
     rulelist = Rulelist(ast)
     rulelist._list = [ visit_rule(rule) for rule in rulename_rule_map.itervalues() ]
-    show(rulelist)
+    show_dot(rulelist)
 
 def analyze(ast):
     ast = normalize_defined_as(ast)
-    rulename_rule_map = dict( ( ( x.rulename, x ) for x in ast ) )
-    f(ast, rulename_rule_map)
+    f(ast)
     return ast
 
