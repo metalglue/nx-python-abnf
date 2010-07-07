@@ -2,6 +2,7 @@
 
 import abnf.lexer
 import abnf.parser
+import abnf.anal
 
 def test_(parser, lexer, text):
     pass
@@ -18,50 +19,22 @@ def test(parser, lexer, text):
     p = parser.parse(text, lexer=lexer)
     print p
 
-def test2(p):
-    def visit(p):
-        def escape(s):
-            return s.replace('"', '\\"')
-        print 'node%d [ label = "%s" ];' % ( id(p), escape(str(p)) )
-        for i in p:
-            print 'node%d -> node%d;' % ( id(p), id(i) )
-        for i in p:
-            visit(i)
-    print "digraph sample {"
-    print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
-    print "node [ fontsize=8, shape=box, width=0, height=0 ];"
-    for x in p:
-        visit(x)
-    print "}"
+def test2(p, lexer, text):
+    ast = parser.parse(text, lexer=lexer, tracking=True)
+    abnf.anal.show_dot(ast)
 
 def test3(parse, lexer, text):
-    def normalize_defined_as(p):
-        def merge(a, b):
-            return abnf.parser.Rule( a.rulename,
-                                     abnf.parser.DefinedAs.EQ,
-                                     reduce( lambda x, y: x + y, b.alternation, a.alternation ) )
-        name_to_rule = {}
-        for x in p:
-            if x.rulename not in name_to_rule:
-                if x.defined_as == abnf.parser.DefinedAs.EQSLASH:
-                    raise Exception( "Syntax Error at line %d." % ( x.alternation._list[0].lineno ) )
-                name_to_rule[ x.rulename ] = x
-            else:
-                if x.defined_as == abnf.parser.DefinedAs.EQ:
-                    raise Exception( "Syntax Error at line %d." % ( x.alternation._list[0].lineno ) )
-                name_to_rule[ x.rulename ] = merge( name_to_rule[ x.rulename ], x )
-        return reduce( lambda x, y: x + y, name_to_rule.itervalues(), abnf.parser.Rulelist([]) )
-    p = parser.parse(text, lexer=lexer, tracking=True)
-    p = normalize_defined_as(p)
-    test2(p)
+    ast = parser.parse(text, lexer=lexer, tracking=True)
+    ast = abnf.anal.analyze(ast)
+    abnf.anal.show(ast)
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
-test3(parser, lexer, """
+test_(parser, lexer, """
         rule = rulename
         rule =/ rulename
 """)
-test_(parser, lexer, """
+test2(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
