@@ -202,3 +202,27 @@ def p_element____(p):
 def parser():
     return ply.yacc.yacc(write_tables=0, debug=0)
 
+def show(ast):
+    def visit(x, indent=0):
+        print "%s%s" % ( "  " * indent, x )
+        for xx in x:
+            visit( xx, indent + 1 )
+    for rule in ast:
+        visit(rule)
+
+def show_dot(ast):
+    def visit(x):
+        def escape(s):
+            return s.replace('"', '\\"')
+        print 'node%d [ label = "%s" ];' % ( id(x), escape(str(x)) )
+        for i in x:
+            print 'node%d -> node%d;' % ( id(x), id(i) )
+        for i in x:
+            visit(i)
+    print "digraph sample {"
+    print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
+    print "node [ fontsize=8, shape=box, width=0, height=0 ];"
+    for x in ast:
+        visit(x)
+    print "}"
+

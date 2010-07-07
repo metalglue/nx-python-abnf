@@ -21,12 +21,12 @@ def test(parser, lexer, text):
 
 def test2(p, lexer, text):
     ast = parser.parse(text, lexer=lexer, tracking=True)
-    abnf.anal.show_dot(ast)
+    abnf.parser.show_dot(ast)
 
 def test3(parse, lexer, text):
     ast = parser.parse(text, lexer=lexer, tracking=True)
     ast = abnf.anal.analyze(ast)
-    abnf.anal.show(ast)
+    abnf.parser.show(ast)
 
 lexer = abnf.lexer.lexer()
 parser = abnf.parser.parser()
@@ -34,7 +34,7 @@ test_(parser, lexer, """
         rule = rulename
         rule =/ rulename
 """)
-test2(parser, lexer, """
+test3(parser, lexer, """
 
          rule           =  rulename defined-as elements c-nl
                                 ; continues if next line starts
