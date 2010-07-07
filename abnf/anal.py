@@ -31,7 +31,7 @@ class Rule(object):
         self.rule = rule
         self._list = []
     def __str__(self):
-        return str( self.rule )
+        return self.rule.rulename
     def __iter__(self):
         return iter(self._list)
 
@@ -52,7 +52,7 @@ class Reference(object):
         if self.rule:
             return "Reference %s" % ( self.rulename )
         else:
-            return "Unresolved Reference %s" % ( self.rulename )
+            return "%s" % ( self.rulename )
     def __iter__(self):
         return
         yield
@@ -71,6 +71,8 @@ def show_dot(rulelist):
         def escape(s):
             return s.replace('"', '\\"')
         print 'node%d [ label = "%s" ];' % ( id(x), escape(str(x)) )
+        if isinstance(x, Definition):
+            print 'node%d [ shape=box ];' % ( id(x) )
         for i in x:
             if isinstance( i, Reference ) and i.rule is not None:
                 print 'node%d -> node%d;' % ( id(x), id(i.rule) )
@@ -81,7 +83,8 @@ def show_dot(rulelist):
                 visit(i)
     print "digraph sample {"
     # print "graph [ rankdir=LR, nodesep=0.1, ranksep=0.7 ];"
-    print "node [ fontsize=8, shape=box, width=0, height=0 ];"
+    print "node [ fontsize=8, shape=ellipse, width=0, height=0 ];"
+    print "edge [ arrowsize=0.5 ];"
     for x in rulelist:
         visit(x)
     # print "{ rank=same; ",
@@ -91,9 +94,19 @@ def show_dot(rulelist):
     print "}"
 
 def f(ast):
+    def create_reference(rulename):
+        if rulename in unresolved_refs_map:
+            return unresolved_refs_map[rulename]
+        elif rulename in rulename_rule_map:
+            return Reference( rulename, rulename_rule_map[rulename] )
+        else:
+            r = Reference(rulename, None)
+            unresolved_refs_map[rulename] = r
+            return r
     def visit_xxx(x, definition):
         if isinstance( x, abnf.parser.RulenameElement ):
-            definition.refs = definition.refs + [ Reference( x.rulename, rulename_rule_map.get( x.rulename, None ) ) ]
+            if not filter( lambda i: i.rulename == x.rulename, definition.refs ):
+                definition.refs = definition.refs + [ create_reference( x.rulename ) ]
         for xx in x:
             visit_xxx(xx, definition)
     def visit_concatenation(concatenation):
@@ -105,6 +118,7 @@ def f(ast):
         definitions = [ visit_concatenation(concatenation) for concatenation in rule.rule.alternation ]
         rule._list = definitions
         return rule
+    unresolved_refs_map = {}
     rulename_rule_map = dict( ( ( rule.rulename, Rule(rule) ) for rule in ast ) )
     rulelist = Rulelist(ast)
     rulelist._list = [ visit_rule(rule) for rule in rulename_rule_map.itervalues() ]
